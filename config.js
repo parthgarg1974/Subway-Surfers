@@ -1,0 +1,13 @@
+var brown = [160/255,82/255,45/255,1.0];
+var mustard = [218/255,165/255,32/255,1.0];
+var black = [12/255,11/255,19/255,1.0];
+var grey = [128/255,128/255,128/255,1.0];
+var dark_brown = [101/255, 67/255, 33/255,1.0];
+var random = [Math.random(),Math.random(),Math.random(),Math.random()];
+var white = [1,1,1,1];
+var skyblue = [135/255, 206/255, 235/255,1.0];
+var yellow = [1, 1, 0,1.0];
+var orange = [255/255, 140/255, 0,1.0];
+var dark_orange = [255/255, 76/255, 0,1.0];
+var skin = [255/255,205/255,148/255,1.0];
+var dark_skin = [111/255,79/255,29/255,1.0];
