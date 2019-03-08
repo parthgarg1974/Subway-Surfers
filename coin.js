@@ -104,12 +104,17 @@ let coins = class {
             modelViewMatrix);
 
         {
-            const vertexCount = 3*this.n;
+            const vertexCount = 12*this.n;
             const type = gl.UNSIGNED_SHORT;
             const offset = 0;
             gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
         }
 
+    }
+
+    tick()
+    {
+        this.pos[2] -= 0.1;
     }
 
 
@@ -121,13 +126,37 @@ let coins = class {
         var positions = [];
 
         var radius = 0.09;
+        var z = 0.025;
 
         for(var i=0;i<this.n;i++)
         {   
-            positions.push(radius*Math.sin(2*Math.PI/this.n*(i+1)),radius*Math.cos(2*Math.PI/this.n*(i+1)),0);
-            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),radius*Math.cos(2*Math.PI/this.n*(i)),0);
-            positions.push(0,0,0);
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i+1)),radius*Math.cos(2*Math.PI/this.n*(i+1)),-z);
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),radius*Math.cos(2*Math.PI/this.n*(i)),-z);
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),radius*Math.cos(2*Math.PI/this.n*(i)),z);
+            
+
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i+1)),radius*Math.cos(2*Math.PI/this.n*(i+1)),z);
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),radius*Math.cos(2*Math.PI/this.n*(i)),z);
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),radius*Math.cos(2*Math.PI/this.n*(i)),-z);
+            
         }
+
+        for(var i=0;i<this.n;i++)
+        {   
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i+1)),radius*Math.cos(2*Math.PI/this.n*(i+1)),-z);
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),radius*Math.cos(2*Math.PI/this.n*(i)),-z);
+            // positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),radius*Math.cos(2*Math.PI/this.n*(i)),z);
+            positions.push(0,0,-z);
+            
+
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i+1)),radius*Math.cos(2*Math.PI/this.n*(i+1)),z);
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),radius*Math.cos(2*Math.PI/this.n*(i)),z);
+            positions.push(0,0,z);
+            // positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),radius*Math.cos(2*Math.PI/this.n*(i)),-z);
+            
+        }
+
+        
 
         return positions;
     }
@@ -137,7 +166,10 @@ let coins = class {
         var colors = [];
         for(var i = 0;i<this.n;i++)
         {
-            colors = colors.concat(white,white,white,white);
+            colors = colors.concat(gold,white,gold,gold);
+            colors = colors.concat(gold,white,gold,gold);
+            colors = colors.concat(gold,gold,gold,gold);
+            colors = colors.concat(gold,gold,gold,gold);
         }
 
         return colors;
@@ -146,7 +178,7 @@ let coins = class {
     generate_indices()
     {
         var indices = [];
-        for(var i = 0;i<this.n;i++)
+        for(var i = 0;i<this.n*4;i++)
         {
             indices.push(3*i);
             indices.push(3*i+1);
@@ -156,5 +188,18 @@ let coins = class {
 
         return indices;
     }
-}
+    coin_pickup(pos,length)
+    {
+        if(this.pos[0] === pos[0] || Math.abs(this.pos[0]-pos[0]) === 0.35)
+        {
+            if(pos[1] < -0.6)
+            {
+                if(this.pos[2]-pos[2] <= 0.025+length && this.pos[2]-pos[2] > 0)
+                {
+                    to_be_removed = true;   
+                }
+            }   
+        }
+    }
+};
 

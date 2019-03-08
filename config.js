@@ -11,3 +11,24 @@ var orange = [255/255, 140/255, 0,1.0];
 var dark_orange = [255/255, 76/255, 0,1.0];
 var skin = [255/255,205/255,148/255,1.0];
 var dark_skin = [111/255,79/255,29/255,1.0];
+var gold = [255/255,191/255,0,1.0];
+var violet = [102/255, 78/255, 174/255,1.0];
+var light_violet = [196/255, 168/255, 255/255,1.0]
+
+var c;
+var c1;
+var trains;
+var scene_num;
+var scene_right;
+var coin_number;
+var NUMBER_OF_TRAINS;
+var NUMBER_OF_COIN;
+var NUMBER_OF_SCENES;
+var texture;
+var texture_2;
+var texture_3;
+var texture_4;
+var return_value;
+var miles;
+var boot_powerup;
+var to_be_removed;

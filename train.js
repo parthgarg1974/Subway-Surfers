@@ -221,4 +221,81 @@ let train = class {
         }
 
     }
+
+    detect_front(pos,length)
+    {
+        // console.log(pos,this.pos);
+        
+        
+            if(this.pos[0] === pos[0])
+            {
+                if(this.pos[2]-pos[2] < this.train_length+length && this.pos[2]-pos[2] > 0)
+                {
+                    if(pos[1]<-0.6)
+                    {
+                        console.log("detected");
+                        // return 1;
+                        // miles.acceleration = 0.1;
+
+
+                    }
+                    else
+                    {
+                        console.log("on train");
+                        if(pos[0] !=0)
+                        miles.pos[1] = 0.2;
+                        else
+                        miles.pos[1] = 0.35;
+                        miles.acceleration = 0;
+                        // return 4;
+                    }
+                }
+                else
+                {
+                    miles.acceleration = 0.1;
+                }
+            }
+            else if(Math.abs(this.pos[0]-pos[0])===0.75)
+            {
+                if(this.pos[2]-pos[2] < this.train_length+length && this.pos[2]-pos[2] > 0)
+                {
+                    if(pos[1]<-0.61)
+                    {
+                        console.log("detected");
+                        // return 1;
+                        // miles.acceleration = 0.1;
+
+
+                    }
+                    else
+                    {
+                        console.log("on train");
+                        if(pos[0] !=0)
+                        miles.pos[1] = 0.2;
+                        else
+                        miles.pos[1] = 0.35;
+                        miles.acceleration = 0;
+                        // return 4;
+                    }
+                }
+                else
+                {
+                    miles.acceleration = 0.1;
+                }
+            }
+
+            // return 0;
+        
+    }
+
+    detect_without_power(pos,length)
+    {
+        if(this.pos[0] == pos[0] || Math.abs(this.pos[0]-pos[0])===0.75)
+        {
+            if(this.pos[2]-pos[2] < this.train_length && this.pos[2]-pos[2] > 0)
+            {
+                console.log("detected without powerup");
+            }
+        }
+    }
 };

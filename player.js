@@ -100,10 +100,14 @@ let player = class {
 
     tick()
     {
-        if(this.pos[1]>-0.6125)
-        {
-            this.pos[1] -= this.acceleration/10;
-        }
+        // console.log(return_value);
+        // if(return_value != 4)
+        // {
+            if(this.pos[1]>-0.6125)
+            {
+                this.pos[1] -= this.acceleration/10;
+            }
+        // }
     }
 
 
@@ -659,7 +663,7 @@ let player = class {
 
     move_up()
     {
-        if(this.pos[1]<0.5)
-        this.pos[1] += 1.5;
+        if(this.pos[1]<-0.2)
+        this.pos[1] = 0;
     }
 };

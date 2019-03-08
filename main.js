@@ -6,22 +6,30 @@ main();
 // Start here
 //
 
-var c;
-var c1;
-var trains;
-var NUMBER_OF_TRAINS;
+
+
 
 function init_objects(gl)
 {
   miles = new player(gl,[0,1,4]);
+  gwen = new police(gl,[0,1,2.5]);
   c1 = new track(gl,[0,-2.0,0]);
   rails = new Rails(gl , [1.2,-2.0,0]);
   rails1 = new Rails(gl , [0,-2.0,0]);
   rails2 = new Rails(gl , [-1.2,-2.0,0]);
-  sample = new coins(gl,[0,0,2]);
-  
+  // sample = new coins(gl,[0,0,2]);
+  return_value = 0;
+  boot_powerup = false;
+  to_be_removed = false;
   NUMBER_OF_TRAINS = 18;
   trains = [];
+
+  NUMBER_OF_COIN = 24;
+  coin_number = [];
+
+  NUMBER_OF_SCENES = 5;
+  scene_num = [];
+  scene_right = [];
   // train = new train(gl,[0.45,-0.1,20]);
   for(var i = 0;i<NUMBER_OF_TRAINS/3;i++)
   {
@@ -38,6 +46,29 @@ function init_objects(gl)
     trains.push(new train(gl,[-0.45,-0.1,getRandomInt(20,1000)]));
   }
 
+  for(var i = 0;i<NUMBER_OF_COIN/3;i++)
+  {
+    coin_number.push(new coins(gl,[0.85,-0.5,getRandomInt(20,500)]));
+    coin_number.push(new coins(gl,[0.0,-0.5,getRandomInt(20,500)]));
+    coin_number.push(new coins(gl,[-0.85,-0.5,getRandomInt(20,500)]));
+  }
+  var z_offset = 0;
+
+  for(var i=0;i<NUMBER_OF_SCENES;i++)
+  {
+    scene_num.push(new scene(gl,[2.4,1.44,5+z_offset]));
+    z_offset += 20;
+  }
+
+  z_offset = 0;
+
+  for(var i=0;i<NUMBER_OF_SCENES;i++)
+  {
+    scene_right.push(new scene(gl,[-5.4,1.44,3+z_offset]));
+    z_offset += 20;
+  }
+
+  // sample = new scene(gl,[2.4,1.44,5]);
   // trains.push(new train(gl,[0.45,-0.1,getRandomInt(20,1000)]));
 
 }
@@ -55,6 +86,8 @@ function main() {
   const canvas = document.querySelector('#glcanvas');
   const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 
+  
+ 
   // c1 = new track(gl, [0, -2.0, -20.0]);
   // If we don't have a GL context, give up now
   
@@ -151,8 +184,7 @@ function main() {
   // Here's where we call the routine that builds all the
   // objects we'll be drawing.
   //const buffers
-
-  const texture = loadTexture(gl,'assets/body.jpeg');
+  init_textures(gl);
 
   var then = 0;
 
@@ -163,7 +195,9 @@ function main() {
     then = now;
     userinput(miles);
     tick_elements();
-    drawScene(gl, programInfo,programInfo2,texture,deltaTime);
+    
+    drawScene(gl, programInfo,programInfo2,deltaTime);
+    // delete_objects();
 
     requestAnimationFrame(render);
   }
@@ -189,7 +223,7 @@ function set_camera(gl)
   // Set the drawing position to the "identity" point, which is
   // the center of the scene.
     var cameraMatrix = mat4.create();
-    mat4.translate(cameraMatrix, cameraMatrix, [2, 5, 0]);
+    // mat4.translate(cameraMatrix, cameraMatrix, [2, 5, 0]);
     var cameraPosition = [
       0,
       0.2,
@@ -213,8 +247,8 @@ function set_camera(gl)
 //
 // Draw the scene.
 //
-function drawScene(gl, programInfo, programInfo2,texture,deltaTime) {
-  gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
+function drawScene(gl, programInfo, programInfo2,deltaTime) {
+  gl.clearColor(light_violet[0],light_violet[1],light_violet[2],light_violet[3]); // Clear to black, fully opaque
   gl.clearDepth(1.0);                 // Clear everything
   gl.enable(gl.DEPTH_TEST);           // Enable depth testing
   gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
@@ -278,17 +312,53 @@ function drawScene(gl, programInfo, programInfo2,texture,deltaTime) {
   {
     trains[i].drawCube(gl,viewProjectionMatrix,programInfo,deltaTime);
   }
-  miles.drawCube(gl,viewProjectionMatrix,programInfo,programInfo2,texture,deltaTime);
+  // const texture_2 = loadTexture(gl,'assets/body.jpeg');
+
+  miles.drawCube(gl,viewProjectionMatrix,programInfo,programInfo2,texture_2,deltaTime);
+  gwen.drawCube(gl,viewProjectionMatrix,programInfo,programInfo2,texture_4,deltaTime);
   // trains[0].drawCube(gl,projectionMatrix,programInfo,deltaTime);
-  sample.drawCube(gl, viewProjectionMatrix, programInfo, deltaTime);
+  // sample.drawCube(gl, viewProjectionMatrix, programInfo, deltaTime);
+  for(var i = 0;i<coin_number.length;i++)
+  {
+    coin_number[i].drawCube(gl,viewProjectionMatrix,programInfo,deltaTime);
+  }
+
+  for(var i = 0;i<NUMBER_OF_SCENES;i++)
+  {
+    scene_num[i].drawCube(gl,viewProjectionMatrix,programInfo2,texture,deltaTime);
+    // scene_num[i].drawCube(gl,viewProjectionMatrix,programInfo2,texture_3,deltaTime);
+  }
+
+  for(var i = 0;i<NUMBER_OF_SCENES;i++)
+  {
+    scene_right[i].drawCube(gl,viewProjectionMatrix,programInfo2,texture_3,deltaTime);
+    // scene_num[i].drawCube(gl,viewProjectionMatrix,programInfo2,texture_3,deltaTime);
+  }
 
   
+  // const texture = loadTexture(gl,'assets/scene1.jpg');
+  // sample.drawCube(gl,viewProjectionMatrix,programInfo2,texture,deltaTime);
+
+
+}
+
+function init_textures(gl)
+{
+  texture_2 = loadTexture(gl,'assets/body.jpeg');
+  texture = loadTexture(gl,'assets/building3.jpg');
+  texture_3 = loadTexture(gl,"assets/try1.png");
+  texture_4 = loadTexture(gl,"assets/sponge.jpg");
+  // texture_5 = loadTexture(gl,"assets/pants.png");
 
 }
 
 function tick_elements()
 {
+  // if(return_value!==0)
+  // console.log(return_value);
   miles.tick();
+  gwen.tick();
+  gwen.set_position(miles.pos);
   c1.tick();
   rails.tick();
   rails1.tick();
@@ -297,6 +367,25 @@ function tick_elements()
   for(var i = 0;i<NUMBER_OF_TRAINS;i++)
   {
     trains[i].tick();
+    // console.log(boot_powerup);
+    if(boot_powerup === true)
+      trains[i].detect_front(miles.pos,miles.body_z);
+    else if(boot_powerup === false)
+      trains[i].detect_without_power(miles.pos,miles.body_z);
+
+    // console.log(return_value);
+  }
+  for(var i=0;i<coin_number.length;i++)
+  {
+    coin_number[i].tick();
+    coin_number[i].coin_pickup(miles.pos,miles.body_z);
+
+    if(to_be_removed === true)
+    {
+      // console.log("coin");
+      coin_number.splice(i,1);
+      to_be_removed = false;
+    }
   }
 }
 
@@ -399,3 +488,22 @@ function loadTexture(gl, url) {
 function isPowerOf2(value) {
   return (value & (value - 1)) == 0;
 }
+
+// function delete_objects()
+// {
+//   for(var i=0;i<NUMBER_OF_TRAINS;i++)
+//   {
+//     if(trains[i].pos[2] < 0)
+//     {
+//       trains = trains.slice(0, i).concat(trains.slice(i + 1, trains.length));
+//     }
+//   }
+
+//   for(var i=0;i<NUMBER_OF_COIN;i++)
+//   {
+//     if(coin_number[i].pos[2] < 0)
+//     {
+//       coin_number = coin_number.slice(0, i).concat(coin_number.slice(i + 1, coin_number.length));
+//     }
+//   }
+// }
