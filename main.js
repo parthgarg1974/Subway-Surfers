@@ -17,8 +17,14 @@ function init_objects(gl)
   rails = new Rails(gl , [1.2,-2.0,0]);
   rails1 = new Rails(gl , [0,-2.0,0]);
   rails2 = new Rails(gl , [-1.2,-2.0,0]);
-  // sample = new coins(gl,[0,0,2]);
+  // sample = new shoes(gl,[0,1,5]);
+  NUMBER_OF_SHOES = 6;
+  shoe_num = [];
+  jetpack_boost = false;
+  shoe_boost = false;
+  timer_start = 0;
   return_value = 0;
+  score = 0;
   boot_powerup = false;
   to_be_removed = false;
   NUMBER_OF_TRAINS = 18;
@@ -28,6 +34,8 @@ function init_objects(gl)
   coin_number = [];
 
   NUMBER_OF_SCENES = 5;
+  NUMBER_OF_JETS = 6;
+  jets = [];
   scene_num = [];
   scene_right = [];
   // train = new train(gl,[0.45,-0.1,20]);
@@ -51,6 +59,20 @@ function init_objects(gl)
     coin_number.push(new coins(gl,[0.85,-0.5,getRandomInt(20,500)]));
     coin_number.push(new coins(gl,[0.0,-0.5,getRandomInt(20,500)]));
     coin_number.push(new coins(gl,[-0.85,-0.5,getRandomInt(20,500)]));
+  }
+
+  for(var i = 0;i<NUMBER_OF_JETS/3;i++)
+  {
+    jets.push(new jetpack(gl,[0.85,-0.5,getRandomInt(20,500)]));
+    jets.push(new jetpack(gl,[0.0,-0.5,getRandomInt(20,500)]));
+    jets.push(new jetpack(gl,[-0.85,-0.5,getRandomInt(20,500)]));
+  }
+
+  for(var i = 0;i<NUMBER_OF_SHOES/3;i++)
+  {
+    shoe_num.push(new shoes(gl,[0.85,-0.5,getRandomInt(20,500)]));
+    shoe_num.push(new shoes(gl,[0.0,-0.5,getRandomInt(20,500)]));
+    shoe_num.push(new shoes(gl,[-0.85,-0.5,getRandomInt(20,500)]));
   }
   var z_offset = 0;
 
@@ -323,6 +345,17 @@ function drawScene(gl, programInfo, programInfo2,deltaTime) {
     coin_number[i].drawCube(gl,viewProjectionMatrix,programInfo,deltaTime);
   }
 
+  for(var i = 0;i<jets.length;i++)
+  {
+    jets[i].drawCube(gl,viewProjectionMatrix,programInfo,deltaTime);
+  }
+
+
+  for(var i = 0;i<shoe_num.length;i++)
+  {
+    shoe_num[i].drawCube(gl,viewProjectionMatrix,programInfo,deltaTime);
+  }
+
   for(var i = 0;i<NUMBER_OF_SCENES;i++)
   {
     scene_num[i].drawCube(gl,viewProjectionMatrix,programInfo2,texture,deltaTime);
@@ -356,6 +389,14 @@ function tick_elements()
 {
   // if(return_value!==0)
   // console.log(return_value);
+  if(Date.now()-timer_start > 10000)
+  {
+    jetpack_boost = false;
+  }
+  if(Date.now()-timer_start_shoe > 10000)
+  {
+    boot_powerup = false;
+  }
   miles.tick();
   gwen.tick();
   gwen.set_position(miles.pos);
@@ -383,7 +424,39 @@ function tick_elements()
     if(to_be_removed === true)
     {
       // console.log("coin");
+      score+=1;
       coin_number.splice(i,1);
+      to_be_removed = false;
+    }
+  }
+
+  for(var i=0;i<jets.length;i++)
+  {
+    jets[i].tick();
+    jets[i].jet_pickup(miles.pos,miles.body_z);
+
+    if(to_be_removed === true)
+    {
+      // console.log("coin");
+      jetpack_boost = true;
+      timer_start = Date.now();
+      jets.splice(i,1);
+      to_be_removed = false;
+    }
+  }
+
+
+  for(var i=0;i<shoe_num.length;i++)
+  {
+    shoe_num[i].tick();
+    shoe_num[i].shoe_pickup(miles.pos,miles.body_z);
+
+    if(to_be_removed === true)
+    {
+      // console.log("coin");
+      boot_powerup = true;
+      timer_start_shoe = Date.now();
+      shoe_num.splice(i,1);
       to_be_removed = false;
     }
   }

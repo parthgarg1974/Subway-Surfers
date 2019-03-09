@@ -1,9 +1,11 @@
 /// <reference path="webgl.d.ts" />
 
-let coins = class {
-    constructor(gl,pos){
+let jetpack = class {
+    constructor(gl,pos)
+    {
         this.positionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER,this.positionBuffer);
+
         this.n = 50;
         this.positions = this.generate_coordinates();
         this.rotation = 0;
@@ -29,6 +31,26 @@ let coins = class {
             color: colorBuffer,
             indices: indexBuffer,
         };
+
+
+    }
+    tick()
+    {
+        this.pos[2] -= 0.1;
+    }
+
+    jet_pickup(pos,length)
+    {
+        if(this.pos[0] === pos[0] || Math.abs(this.pos[0]-pos[0]) === 0.35)
+        {
+            if(pos[1] < -0.6)
+            {
+                if(this.pos[2]-pos[2] <= 0.025+length && this.pos[2]-pos[2] > 0)
+                {
+                    to_be_removed = true;   
+                }
+            }   
+        }
     }
 
     drawCube(gl, projectionMatrix, programInfo, deltaTime) {
@@ -104,7 +126,7 @@ let coins = class {
             modelViewMatrix);
 
         {
-            const vertexCount = 12*this.n;
+            const vertexCount = 24*this.n;
             const type = gl.UNSIGNED_SHORT;
             const offset = 0;
             gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
@@ -112,55 +134,67 @@ let coins = class {
 
     }
 
-    tick()
-    {
-        this.pos[2] -= 0.1;
-
-        if(jetpack_boost === true)
-        {
-            this.pos[1] = 1.5;
-        }
-        else
-        {
-            this.pos[1] = -0.5;
-        }
-    }
-
-
     generate_coordinates()
     {
-        // var n = 50;
-        // var k = 0;
-
         var positions = [];
 
-        var radius = 0.09;
-        var z = 0.025;
+        var radius = 0.05;
+        var z = 0.125;
 
         for(var i=0;i<this.n;i++)
         {   
-            positions.push(radius*Math.sin(2*Math.PI/this.n*(i+1)),radius*Math.cos(2*Math.PI/this.n*(i+1)),-z);
-            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),radius*Math.cos(2*Math.PI/this.n*(i)),-z);
-            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),radius*Math.cos(2*Math.PI/this.n*(i)),z);
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i+1)),-z,radius*Math.cos(2*Math.PI/this.n*(i+1)));
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),-z,radius*Math.cos(2*Math.PI/this.n*(i)));
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),z,radius*Math.cos(2*Math.PI/this.n*(i)));
             
 
-            positions.push(radius*Math.sin(2*Math.PI/this.n*(i+1)),radius*Math.cos(2*Math.PI/this.n*(i+1)),z);
-            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),radius*Math.cos(2*Math.PI/this.n*(i)),z);
-            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),radius*Math.cos(2*Math.PI/this.n*(i)),-z);
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i+1)),z,radius*Math.cos(2*Math.PI/this.n*(i+1)));
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),z,radius*Math.cos(2*Math.PI/this.n*(i)));
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),-z,radius*Math.cos(2*Math.PI/this.n*(i)));
             
         }
 
         for(var i=0;i<this.n;i++)
         {   
-            positions.push(radius*Math.sin(2*Math.PI/this.n*(i+1)),radius*Math.cos(2*Math.PI/this.n*(i+1)),-z);
-            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),radius*Math.cos(2*Math.PI/this.n*(i)),-z);
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i+1)),-z,radius*Math.cos(2*Math.PI/this.n*(i+1)));
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),-z,radius*Math.cos(2*Math.PI/this.n*(i)));
             // positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),radius*Math.cos(2*Math.PI/this.n*(i)),z);
-            positions.push(0,0,-z);
+            positions.push(0,0.2,0);
             
 
-            positions.push(radius*Math.sin(2*Math.PI/this.n*(i+1)),radius*Math.cos(2*Math.PI/this.n*(i+1)),z);
-            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),radius*Math.cos(2*Math.PI/this.n*(i)),z);
-            positions.push(0,0,z);
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i+1)),z,radius*Math.cos(2*Math.PI/this.n*(i+1)));
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),z,radius*Math.cos(2*Math.PI/this.n*(i)));
+            positions.push(0,-0.2,0);
+            // positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),radius*Math.cos(2*Math.PI/this.n*(i)),-z);
+            
+        }
+
+        var z_offset = 0.1;
+
+        for(var i=0;i<this.n;i++)
+        {   
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i+1)),-z,radius*Math.cos(2*Math.PI/this.n*(i+1))+z_offset);
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),-z,radius*Math.cos(2*Math.PI/this.n*(i))+z_offset);
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),z,radius*Math.cos(2*Math.PI/this.n*(i))+z_offset);
+            
+
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i+1)),z,radius*Math.cos(2*Math.PI/this.n*(i+1))+z_offset);
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),z,radius*Math.cos(2*Math.PI/this.n*(i))+z_offset);
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),-z,radius*Math.cos(2*Math.PI/this.n*(i))+z_offset);
+            
+        }
+
+        for(var i=0;i<this.n;i++)
+        {   
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i+1)),-z,radius*Math.cos(2*Math.PI/this.n*(i+1))+z_offset);
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),-z,radius*Math.cos(2*Math.PI/this.n*(i))+z_offset);
+            // positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),radius*Math.cos(2*Math.PI/this.n*(i)),z);
+            positions.push(0,0.2,0+z_offset);
+            
+
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i+1)),z,radius*Math.cos(2*Math.PI/this.n*(i+1))+z_offset);
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),z,radius*Math.cos(2*Math.PI/this.n*(i))+z_offset);
+            positions.push(0,-0.2,0+z_offset);
             // positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),radius*Math.cos(2*Math.PI/this.n*(i)),-z);
             
         }
@@ -168,17 +202,18 @@ let coins = class {
         
 
         return positions;
+
     }
 
     generate_colors()
     {
         var colors = [];
-        for(var i = 0;i<this.n;i++)
+        for(var i = 0;i<this.n*2;i++)
         {
-            colors = colors.concat(gold,white,gold,gold);
-            colors = colors.concat(gold,white,gold,gold);
-            colors = colors.concat(gold,gold,gold,gold);
-            colors = colors.concat(gold,gold,gold,gold);
+            colors = colors.concat(yellow,yellow,yellow,yellow);
+            colors = colors.concat(yellow,yellow,yellow,yellow);
+            colors = colors.concat(yellow,yellow,yellow,yellow);
+            colors = colors.concat(yellow,yellow,yellow,yellow);
         }
 
         return colors;
@@ -187,7 +222,7 @@ let coins = class {
     generate_indices()
     {
         var indices = [];
-        for(var i = 0;i<this.n*4;i++)
+        for(var i = 0;i<this.n*8;i++)
         {
             indices.push(3*i);
             indices.push(3*i+1);
@@ -197,19 +232,4 @@ let coins = class {
 
         return indices;
     }
-    
-    coin_pickup(pos,length)
-    {
-        if(this.pos[0] === pos[0] || Math.abs(this.pos[0]-pos[0]) === 0.35)
-        {
-            if(pos[1] < -0.6 || jetpack_boost === true)
-            {
-                if(this.pos[2]-pos[2] <= 0.025+length && this.pos[2]-pos[2] > 0)
-                {
-                    to_be_removed = true;   
-                }
-            }   
-        }
-    }
-};
-
+}

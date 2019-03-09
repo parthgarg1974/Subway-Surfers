@@ -6,6 +6,7 @@ let player = class {
         this.positionBuffer = gl.createBuffer();
         this.positionBuffer2 = gl.createBuffer();
         this.positionBuffer3 = gl.createBuffer();
+        this.positionBuffer4 = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER,this.positionBuffer);
         
         this.body_x = 0.15;
@@ -19,6 +20,8 @@ let player = class {
         this.bottom_x = 0.10;
         this.bottom_y = 0.15;
         this.bottom_z = 0.24;
+
+        this.n = 50;
         
         this.positions = this.generate_coordinates();
         gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(this.positions),gl.STATIC_DRAW);
@@ -30,6 +33,10 @@ let player = class {
         gl.bindBuffer(gl.ARRAY_BUFFER,this.positionBuffer3);
         this.positions3 = this.generate_coordinates3();
         gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(this.positions3),gl.STATIC_DRAW);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER,this.positionBuffer4);
+        this.positions4 = this.generate_coordinates4();
+        gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(this.positions4),gl.STATIC_DRAW);
 
         this.rotation = 0;
         this.rotation2 = 0;
@@ -50,6 +57,12 @@ let player = class {
         gl.bindBuffer(gl.ARRAY_BUFFER,colorBuffer2);
         gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(colors2),gl.STATIC_DRAW);
 
+        const colorBuffer4 = gl.createBuffer();
+        var colors4 = this.generate_colors4();
+        gl.bindBuffer(gl.ARRAY_BUFFER,colorBuffer4);
+        gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(colors4),gl.STATIC_DRAW);
+
+        
         const textureCoordBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
 
@@ -76,6 +89,12 @@ let player = class {
         
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(indices3),gl.STATIC_DRAW);
 
+        const indexBuffer4 = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,indexBuffer4);
+        const indices4 = this.generate_indices4();
+        
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(indices4),gl.STATIC_DRAW);
+
         this.buffer = {
             position: this.positionBuffer,
             color: colorBuffer,
@@ -95,19 +114,110 @@ let player = class {
             indices: indexBuffer3,
         };
 
+        this.buffer4 = {
+            position: this.positionBuffer4,
+            color: colorBuffer4,
+            indices: indexBuffer4,
+        };
+
         
     }
 
     tick()
     {
         // console.log(return_value);
-        // if(return_value != 4)
-        // {
+        if(jetpack_boost===false)
+        {
             if(this.pos[1]>-0.6125)
             {
                 this.pos[1] -= this.acceleration/10;
             }
-        // }
+        }
+        else
+        {
+            this.pos[1] = 1.5;
+        }
+    }
+    drawCube4(gl, projectionMatrix, programInfo, deltaTime) {
+        // console.log("hello");
+        const modelViewMatrix = mat4.create();
+        // this.pos[2]=this.pos[2]+0.1;
+        mat4.translate(
+            modelViewMatrix,
+            modelViewMatrix,
+            [this.pos[0]-0.05,this.pos[1]-0.15,this.pos[2]-0.5]
+        );
+        
+        // this.rotation += Math.PI / (((Math.random()) % 100) + 50);
+
+        mat4.rotate(modelViewMatrix,
+            modelViewMatrix,
+            Math.PI/(2),
+            [0, 1, 0]);
+
+        {
+            const numComponents = 3;
+            const type = gl.FLOAT;
+            const normalize = false;
+            const stride = 0;
+            const offset = 0;
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer4.position);
+            gl.vertexAttribPointer(
+                programInfo.attribLocations.vertexPosition,
+                numComponents,
+                type,
+                normalize,
+                stride,
+                offset);
+            gl.enableVertexAttribArray(
+                programInfo.attribLocations.vertexPosition);
+        }
+
+        // Tell WebGL how to pull out the colors from the color buffer4
+        // into the vertexColor attribute.
+        {
+            const numComponents = 4;
+            const type = gl.FLOAT;
+            const normalize = false;
+            const stride = 0;
+            const offset = 0;
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer4.color);
+            gl.vertexAttribPointer(
+                programInfo.attribLocations.vertexColor,
+                numComponents,
+                type,
+                normalize,
+                stride,
+                offset);
+            gl.enableVertexAttribArray(
+                programInfo.attribLocations.vertexColor);
+        }
+
+        // Tell WebGL which indices to use to index the vertices
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.buffer4.indices);
+
+        // Tell WebGL to use our program when drawing
+
+        gl.useProgram(programInfo.program);
+
+        // Set the shader uniforms
+
+        gl.uniformMatrix4fv(
+            programInfo.uniformLocations.projectionMatrix,
+            false,
+            projectionMatrix);
+        gl.uniformMatrix4fv(
+            programInfo.uniformLocations.modelViewMatrix,
+            false,
+            modelViewMatrix);
+
+        {
+            const vertexCount = 24*this.n;
+            const type = gl.UNSIGNED_SHORT;
+            const offset = 0;
+            gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
+        }
+
     }
 
 
@@ -184,8 +294,11 @@ let player = class {
             const offset = 0;
             gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
         }
+        // if(jetpack_boost === false)
+            this.drawCube2(gl,projectionMatrix,programInfo,programInfo2,texture,deltaTime);
+        // else
+            // this.drawCube3(gl,projectionMatrix,programInfo,programInfo2,texture,deltaTime);
 
-        this.drawCube2(gl,projectionMatrix,programInfo,programInfo2,texture,deltaTime);
     }
 
     drawCube2(gl,projectionMatrix,programInfo,programInfo2,texture,deltaTime)
@@ -202,6 +315,7 @@ let player = class {
             modelViewMatrix,
             [0,-0.15,0]
         );
+        if(jetpack_boost === false)
         this.rotation2 += Math.PI / (((Math.random()) % 100) + 50);
         mat4.rotate(modelViewMatrix,modelViewMatrix,this.rotation2,[1,0,0]);
 
@@ -362,6 +476,10 @@ let player = class {
             const offset = 0;
             gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
         }
+
+        if(jetpack_boost === true)
+        this.drawCube4(gl,projectionMatrix,programInfo,programInfo2,texture,deltaTime);
+
 
     }
 
@@ -665,5 +783,104 @@ let player = class {
     {
         if(this.pos[1]<-0.2)
         this.pos[1] = 0;
+    }
+
+    generate_coordinates4()
+    {
+        var positions = [];
+
+        var radius = 0.05;
+        var z = 0.125;
+
+        for(var i=0;i<this.n;i++)
+        {   
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i+1)),-z,radius*Math.cos(2*Math.PI/this.n*(i+1)));
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),-z,radius*Math.cos(2*Math.PI/this.n*(i)));
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),z,radius*Math.cos(2*Math.PI/this.n*(i)));
+            
+
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i+1)),z,radius*Math.cos(2*Math.PI/this.n*(i+1)));
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),z,radius*Math.cos(2*Math.PI/this.n*(i)));
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),-z,radius*Math.cos(2*Math.PI/this.n*(i)));
+            
+        }
+
+        for(var i=0;i<this.n;i++)
+        {   
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i+1)),-z,radius*Math.cos(2*Math.PI/this.n*(i+1)));
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),-z,radius*Math.cos(2*Math.PI/this.n*(i)));
+            // positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),radius*Math.cos(2*Math.PI/this.n*(i)),z);
+            positions.push(0,0.2,0);
+            
+
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i+1)),z,radius*Math.cos(2*Math.PI/this.n*(i+1)));
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),z,radius*Math.cos(2*Math.PI/this.n*(i)));
+            positions.push(0,-0.2,0);
+            // positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),radius*Math.cos(2*Math.PI/this.n*(i)),-z);
+            
+        }
+
+        var z_offset = 0.1;
+
+        for(var i=0;i<this.n;i++)
+        {   
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i+1)),-z,radius*Math.cos(2*Math.PI/this.n*(i+1))+z_offset);
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),-z,radius*Math.cos(2*Math.PI/this.n*(i))+z_offset);
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),z,radius*Math.cos(2*Math.PI/this.n*(i))+z_offset);
+            
+
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i+1)),z,radius*Math.cos(2*Math.PI/this.n*(i+1))+z_offset);
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),z,radius*Math.cos(2*Math.PI/this.n*(i))+z_offset);
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),-z,radius*Math.cos(2*Math.PI/this.n*(i))+z_offset);
+            
+        }
+
+        for(var i=0;i<this.n;i++)
+        {   
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i+1)),-z,radius*Math.cos(2*Math.PI/this.n*(i+1))+z_offset);
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),-z,radius*Math.cos(2*Math.PI/this.n*(i))+z_offset);
+            // positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),radius*Math.cos(2*Math.PI/this.n*(i)),z);
+            positions.push(0,0.2,0+z_offset);
+            
+
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i+1)),z,radius*Math.cos(2*Math.PI/this.n*(i+1))+z_offset);
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),z,radius*Math.cos(2*Math.PI/this.n*(i))+z_offset);
+            positions.push(0,-0.2,0+z_offset);
+            // positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),radius*Math.cos(2*Math.PI/this.n*(i)),-z);
+            
+        }
+
+        
+
+        return positions;
+
+    }
+
+    generate_colors4()
+    {
+        var colors = [];
+        for(var i = 0;i<this.n*2;i++)
+        {
+            colors = colors.concat(yellow,yellow,yellow,yellow);
+            colors = colors.concat(yellow,yellow,yellow,yellow);
+            colors = colors.concat(yellow,yellow,yellow,yellow);
+            colors = colors.concat(yellow,yellow,yellow,yellow);
+        }
+
+        return colors;
+    }
+
+    generate_indices4()
+    {
+        var indices = [];
+        for(var i = 0;i<this.n*8;i++)
+        {
+            indices.push(3*i);
+            indices.push(3*i+1);
+            indices.push(3*i+2);
+
+        }
+
+        return indices;
     }
 };

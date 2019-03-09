@@ -227,7 +227,7 @@ let train = class {
         // console.log(pos,this.pos);
         
         
-            if(this.pos[0] === pos[0])
+            if(this.pos[0] === pos[0] && jetpack_boost === false)
             {
                 if(this.pos[2]-pos[2] < this.train_length+length && this.pos[2]-pos[2] > 0)
                 {
@@ -255,7 +255,7 @@ let train = class {
                     miles.acceleration = 0.1;
                 }
             }
-            else if(Math.abs(this.pos[0]-pos[0])===0.75)
+            else if(Math.abs(this.pos[0]-pos[0])===0.75 && jetpack_boost === false)
             {
                 if(this.pos[2]-pos[2] < this.train_length+length && this.pos[2]-pos[2] > 0)
                 {
@@ -292,9 +292,12 @@ let train = class {
     {
         if(this.pos[0] == pos[0] || Math.abs(this.pos[0]-pos[0])===0.75)
         {
-            if(this.pos[2]-pos[2] < this.train_length && this.pos[2]-pos[2] > 0)
+            if(pos[1]<0)
             {
-                console.log("detected without powerup");
+                if(this.pos[2]-pos[2] < this.train_length && this.pos[2]-pos[2] > 0)
+                {
+                    console.log("detected without powerup");
+                }
             }
         }
     }
