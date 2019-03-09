@@ -197,14 +197,14 @@ let coins = class {
 
         return indices;
     }
-    
+
     coin_pickup(pos,length)
     {
         if(this.pos[0] === pos[0] || Math.abs(this.pos[0]-pos[0]) === 0.35)
         {
             if(pos[1] < -0.6 || jetpack_boost === true)
             {
-                if(this.pos[2]-pos[2] <= 0.025+length && this.pos[2]-pos[2] > 0)
+                if(this.pos[2]-pos[2] <= 0.125+length)
                 {
                     to_be_removed = true;   
                 }

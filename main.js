@@ -17,8 +17,18 @@ function init_objects(gl)
   rails = new Rails(gl , [1.2,-2.0,0]);
   rails1 = new Rails(gl , [0,-2.0,0]);
   rails2 = new Rails(gl , [-1.2,-2.0,0]);
-  // sample = new shoes(gl,[0,1,5]);
+  // sample = new type2(gl,[0,1,5]);
+  lightning = 0;
+  grayscale = 0;
+  now_time = Date.now();
+  NUMBER_OF_TYPE2 = 12;
   NUMBER_OF_SHOES = 6;
+  tumble_counter = 0;
+  NUMBER_OF_BUSHES = 6;
+  NUMBER_OF_SPIKES = 6;
+  type2_num = [];
+  spike_num = [];
+  bush_num = [];
   shoe_num = [];
   jetpack_boost = false;
   shoe_boost = false;
@@ -73,6 +83,27 @@ function init_objects(gl)
     shoe_num.push(new shoes(gl,[0.85,-0.5,getRandomInt(20,500)]));
     shoe_num.push(new shoes(gl,[0.0,-0.5,getRandomInt(20,500)]));
     shoe_num.push(new shoes(gl,[-0.85,-0.5,getRandomInt(20,500)]));
+  }
+
+  for(var i = 0;i<NUMBER_OF_TYPE2/3;i++)
+  {
+    type2_num.push(new type2(gl,[0.85,-0.5,getRandomInt(20,500)]));
+    type2_num.push(new type2(gl,[0.0,-0.5,getRandomInt(20,500)]));
+    type2_num.push(new type2(gl,[-0.85,-0.5,getRandomInt(20,500)]));
+  }
+
+  for(var i = 0;i<NUMBER_OF_BUSHES/2;i++)
+  {
+    bush_num.push(new bush(gl,[0.85,-0.5,getRandomInt(20,500)]));
+    // bush_num.push(new bush(gl,[0.0,-0.5,getRandomInt(20,500)]));
+    bush_num.push(new bush(gl,[-0.85,-0.5,getRandomInt(20,500)]));
+  }
+
+  for(var i = 0;i<NUMBER_OF_SPIKES;i++)
+  {
+    // bush_num.push(new bush(gl,[0.85,-0.5,getRandomInt(20,500)]));
+    spike_num.push(new spikes(gl,[0.0,-0.8,getRandomInt(20,500)]));
+    // bush_num.push(new bush(gl,[-0.85,-0.5,getRandomInt(20,500)]));
   }
   var z_offset = 0;
 
@@ -152,13 +183,30 @@ function main() {
   const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
   const vsSource2 = `
     attribute vec4 aVertexPosition;
+    attribute vec3 aVertexNormal;
     attribute vec2 aTextureCoord;
+
+    uniform mat4 uNormalMatrix;
     uniform mat4 uModelViewMatrix;
     uniform mat4 uProjectionMatrix;
+
     varying highp vec2 vTextureCoord;
+    varying highp vec3 vLighting;
+
     void main(void) {
       gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
       vTextureCoord = aTextureCoord;
+
+      // Apply lighting effect
+
+      highp vec3 ambientLight = vec3(0.3, 0.3, 0.3);
+      highp vec3 directionalLightColor = vec3(1, 1, 1);
+      highp vec3 directionalVector = normalize(vec3(0.85, 0.8, 0.75));
+
+      highp vec4 transformedNormal = uNormalMatrix * vec4(aVertexNormal, 1.0);
+
+      highp float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0);
+      vLighting = ambientLight + (directionalLightColor * directional);
     }
   `;
 
@@ -166,13 +214,50 @@ function main() {
 
   const fsSource2 = `
     varying highp vec2 vTextureCoord;
+    varying highp vec3 vLighting;
+
     uniform sampler2D uSampler;
+
     void main(void) {
-      gl_FragColor = texture2D(uSampler, vTextureCoord);
+      highp vec4 texelColor = texture2D(uSampler, vTextureCoord);
+
+      gl_FragColor = vec4(texelColor.rgb * vLighting, texelColor.a);
     }
   `;
   const shaderProgram2 = initShaderProgram(gl, vsSource2, fsSource2);
   
+  const fsSourcebw = `
+    #ifdef GL_ES
+    precision mediump float;
+    #endif
+    varying lowp vec4 vColor;
+    void main(void) {
+        float gray = (vColor.r + vColor.g + vColor.b) / 3.0;
+        vec3 grayscale = vec3(gray);
+        gl_FragColor = vec4(grayscale, vColor.a);
+    }
+  `;
+
+  const fsSourceTexbw = `
+  #ifdef GL_ES
+  precision mediump float;
+  #endif
+  
+  varying highp vec2 vTextureCoord;
+  varying highp vec3 vLighting;
+  uniform sampler2D uSampler;
+  void main(void) {
+    highp vec4 texelColor = texture2D(uSampler, vTextureCoord);
+    
+    vec3 color = texelColor.rgb;
+    float gray = (color.r + color.g + color.b) / 3.0;
+    vec3 grayscale = vec3(gray);
+    gl_FragColor = vec4(grayscale , texelColor.a);
+  }
+`;
+
+  const shaderProgram3 = initShaderProgram(gl,vsSource,fsSourcebw);
+  const shaderProgram4 = initShaderProgram(gl,vsSource2,fsSourceTexbw);
 
   // Collect all the info needed to use the shader program.
   // Look up which attributes our shader program is using
@@ -190,17 +275,46 @@ function main() {
     },
   };
 
+  const programInfo3 = {
+    program: shaderProgram3,
+    attribLocations: {
+      vertexPosition: gl.getAttribLocation(shaderProgram3, 'aVertexPosition'),
+      vertexColor: gl.getAttribLocation(shaderProgram3, 'aVertexColor'),
+    },
+    uniformLocations: {
+      projectionMatrix: gl.getUniformLocation(shaderProgram3, 'uProjectionMatrix'),
+      modelViewMatrix: gl.getUniformLocation(shaderProgram3, 'uModelViewMatrix'),
+    },
+  };
+
   const programInfo2 = {
     program: shaderProgram2,
     attribLocations: {
       vertexPosition: gl.getAttribLocation(shaderProgram2, 'aVertexPosition'),
+      vertexNormal: gl.getAttribLocation(shaderProgram2, 'aVertexNormal'),
       textureCoord: gl.getAttribLocation(shaderProgram2, 'aTextureCoord'),
     },
     uniformLocations: {
       projectionMatrix: gl.getUniformLocation(shaderProgram2, 'uProjectionMatrix'),
       modelViewMatrix: gl.getUniformLocation(shaderProgram2, 'uModelViewMatrix'),
+      normalMatrix: gl.getUniformLocation(shaderProgram2, 'uNormalMatrix'),
       uSampler: gl.getUniformLocation(shaderProgram2, 'uSampler'),
     },
+};
+
+const programInfo4 = {
+  program: shaderProgram4,
+  attribLocations: {
+    vertexPosition: gl.getAttribLocation(shaderProgram4, 'aVertexPosition'),
+    vertexNormal: gl.getAttribLocation(shaderProgram4, 'aVertexNormal'),
+    textureCoord: gl.getAttribLocation(shaderProgram4, 'aTextureCoord'),
+  },
+  uniformLocations: {
+    projectionMatrix: gl.getUniformLocation(shaderProgram4, 'uProjectionMatrix'),
+    modelViewMatrix: gl.getUniformLocation(shaderProgram4, 'uModelViewMatrix'),
+    normalMatrix: gl.getUniformLocation(shaderProgram4, 'uNormalMatrix'),
+    uSampler: gl.getUniformLocation(shaderProgram4, 'uSampler'),
+  },
 };
 
   // Here's where we call the routine that builds all the
@@ -217,8 +331,11 @@ function main() {
     then = now;
     userinput(miles);
     tick_elements();
-    
-    drawScene(gl, programInfo,programInfo2,deltaTime);
+    if(grayscale === 1)
+      drawScene(gl, programInfo3,programInfo4,deltaTime);
+    else if(grayscale === 0)
+      drawScene(gl, programInfo,programInfo2,deltaTime);
+
     // delete_objects();
 
     requestAnimationFrame(render);
@@ -245,13 +362,12 @@ function set_camera(gl)
   // Set the drawing position to the "identity" point, which is
   // the center of the scene.
     var cameraMatrix = mat4.create();
+    var cameraPosition;
     // mat4.translate(cameraMatrix, cameraMatrix, [2, 5, 0]);
-    var cameraPosition = [
-      0,
-      0.2,
-      // cameraMatrix[14],
-      0,
-    ];
+    if(jetpack_boost === false)
+      cameraPosition = [0,0.2,0];
+    else
+      cameraPosition = [0,1.5,0];
 
     var up = [0, 1, 0];
 
@@ -338,6 +454,7 @@ function drawScene(gl, programInfo, programInfo2,deltaTime) {
 
   miles.drawCube(gl,viewProjectionMatrix,programInfo,programInfo2,texture_2,deltaTime);
   gwen.drawCube(gl,viewProjectionMatrix,programInfo,programInfo2,texture_4,deltaTime);
+  // sample.drawCube(gl,viewProjectionMatrix,programInfo,programInfo2,texture_5,deltaTime);
   // trains[0].drawCube(gl,projectionMatrix,programInfo,deltaTime);
   // sample.drawCube(gl, viewProjectionMatrix, programInfo, deltaTime);
   for(var i = 0;i<coin_number.length;i++)
@@ -356,6 +473,21 @@ function drawScene(gl, programInfo, programInfo2,deltaTime) {
     shoe_num[i].drawCube(gl,viewProjectionMatrix,programInfo,deltaTime);
   }
 
+  for(var i = 0;i<bush_num.length;i++)
+  {
+    bush_num[i].drawCube(gl,viewProjectionMatrix,programInfo,deltaTime);
+  }
+
+  for(var i = 0;i<spike_num.length;i++)
+  {
+    spike_num[i].drawCube(gl,viewProjectionMatrix,programInfo,deltaTime);
+  }
+
+  for(var i = 0;i<type2_num.length;i++)
+  {
+    type2_num[i].drawCube(gl,viewProjectionMatrix,programInfo,programInfo2,texture_5,deltaTime);
+  }
+
   for(var i = 0;i<NUMBER_OF_SCENES;i++)
   {
     scene_num[i].drawCube(gl,viewProjectionMatrix,programInfo2,texture,deltaTime);
@@ -370,7 +502,7 @@ function drawScene(gl, programInfo, programInfo2,deltaTime) {
 
   
   // const texture = loadTexture(gl,'assets/scene1.jpg');
-  // sample.drawCube(gl,viewProjectionMatrix,programInfo2,texture,deltaTime);
+  // sample.drawCube(gl,viewProjectionMatrix,programInfo2,texture_,deltaTime);
 
 
 }
@@ -381,7 +513,7 @@ function init_textures(gl)
   texture = loadTexture(gl,'assets/building3.jpg');
   texture_3 = loadTexture(gl,"assets/try1.png");
   texture_4 = loadTexture(gl,"assets/sponge.jpg");
-  // texture_5 = loadTexture(gl,"assets/pants.png");
+  texture_5 = loadTexture(gl,"assets/type2.png");
 
 }
 
@@ -389,6 +521,18 @@ function tick_elements()
 {
   // if(return_value!==0)
   // console.log(return_value);
+  // console.log(tumble_counter);
+  if(Date.now() - now_time >1000)
+  {
+    now_time = Date.now();
+    lightning = lightning ^ 1;
+  }
+  if(tumble_counter>1)
+  {
+    // console.log("endgame");
+  }
+    
+  
   if(Date.now()-timer_start > 10000)
   {
     jetpack_boost = false;
@@ -396,6 +540,10 @@ function tick_elements()
   if(Date.now()-timer_start_shoe > 10000)
   {
     boot_powerup = false;
+  }
+  if(Date.now()-timer_start_tumble > 10000)
+  {
+    tumble_counter = 0;
   }
   miles.tick();
   gwen.tick();
@@ -458,6 +606,60 @@ function tick_elements()
       timer_start_shoe = Date.now();
       shoe_num.splice(i,1);
       to_be_removed = false;
+    }
+  }
+
+  for(var i=0;i<bush_num.length;i++)
+  {
+    bush_num[i].tick();
+    bush_num[i].shoe_pickup(miles.pos,miles.body_z);
+
+    if(to_be_removed === true)
+    {
+      // console.log("coin");
+      tumble_counter += 1;
+      // boot_powerup = true;
+      timer_start_tumble = Date.now();
+      gwen.pos[2] += 2;
+      to_be_removed = false;
+      bush_num.splice(i,1);
+      // break;
+    }
+  }
+
+  for(var i=0;i<spike_num.length;i++)
+  {
+    spike_num[i].tick();
+    spike_num[i].shoe_pickup(miles.pos,miles.body_z);
+
+    if(to_be_removed === true)
+    {
+      // console.log("coin");
+      tumble_counter += 1;
+      // boot_powerup = true;
+      timer_start_tumble = Date.now();
+      gwen.pos[2] += 2;
+      to_be_removed = false;
+      spike_num.splice(i,1);
+      // break;
+    }
+  }
+
+  for(var i=0;i<type2_num.length;i++)
+  {
+    type2_num[i].tick();
+    type2_num[i].shoe_pickup(miles.pos,miles.body_z);
+
+    if(to_be_removed === true)
+    {
+      // console.log("coin");
+      tumble_counter += 1;
+      // boot_powerup = true;
+      timer_start_tumble = Date.now();
+      gwen.pos[2] += 2;
+      to_be_removed = false;
+      type2_num.splice(i,1);
+      // break;
     }
   }
 }

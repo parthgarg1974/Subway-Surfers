@@ -386,15 +386,19 @@ let police = class {
 
     tick()
     {
-        this.acceleration_z -= 0.000009;
         if(this.pos[1]>-0.6125)
         {
             this.pos[1] -= this.acceleration/10;
         }
-
+        
         if(this.pos[2] > 0)
         {
+            this.acceleration_z -= 0.000009;
             this.pos[2] += this.acceleration_z;
+        }
+        else
+        {
+            this.acceleration_z = 0;
         }
     }
 

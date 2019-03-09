@@ -19,6 +19,9 @@ function userinput(miles)
       case "ArrowRight":
         miles.move_right();
         break;
+      case "x":
+        grayscale = grayscale ^ 1;
+        break;
       default:
         return; // Quit when this doesn't handle the key event.
     }

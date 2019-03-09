@@ -1,18 +1,16 @@
 /// <reference path="webgl.d.ts" />
 
-let shoes = class {
+let spikes = class {
     constructor(gl,pos)
     {
         this.positionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER,this.positionBuffer);
 
-        this.vertical_x = 0.15;
-        this.vertical_y = 0.15;
-        this.vertical_z = 0.15;
+        this.horizontal_x = 0.35;
+        this.horizontal_y = 0.05;
+        this.horizontal_z = 0.05;
 
-        this.horizontal_x = 0.25;
-        this.horizontal_y = 0.15;
-        this.horizontal_z = 0.15;
+        this.n = 50;
 
         this.positions = this.generate_coordinates();
         gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(this.positions),gl.STATIC_DRAW);
@@ -46,7 +44,7 @@ let shoes = class {
             modelViewMatrix,
             this.pos
         );
-        this.rotation += Math.PI/(Math.random()%100+50)
+        // this.rotation += Math.PI/(Math.random()%100+50)
 
         mat4.rotate(modelViewMatrix,modelViewMatrix,this.rotation,[0,1,0]);
 
@@ -107,51 +105,25 @@ let shoes = class {
             modelViewMatrix);
 
         {
-            const vertexCount = 36+36;
+            const vertexCount = 36+this.n*9;
             const type = gl.UNSIGNED_SHORT;
             const offset = 0;
             gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
         }
 
+
+
         // this.drawCube3(gl,projectionMatrix,programInfo,programInfo2,texture,deltaTime);
     }
 
+
     generate_coordinates()
     {
-        var positions = [
-            -this.vertical_x,-this.vertical_y,this.vertical_z,
-            this.vertical_x,-this.vertical_y,this.vertical_z,
-            this.vertical_x,this.vertical_y,this.vertical_z,
-            -this.vertical_x,this.vertical_y,this.vertical_z,
-            
-            -this.vertical_x,-this.vertical_y,-this.vertical_z,
-            this.vertical_x,-this.vertical_y,-this.vertical_z,
-            this.vertical_x,this.vertical_y,-this.vertical_z,
-            -this.vertical_x,this.vertical_y,-this.vertical_z,
+        var positions = [];
+        
 
-            -this.vertical_x,this.vertical_y,-this.vertical_z,
-            this.vertical_x,this.vertical_y,-this.vertical_z,
-            this.vertical_x,this.vertical_y,this.vertical_z,
-            -this.vertical_x,this.vertical_y,this.vertical_z,
-
-            -this.vertical_x,-this.vertical_y,-this.vertical_z,
-            this.vertical_x,-this.vertical_y,-this.vertical_z,
-            this.vertical_x,-this.vertical_y,this.vertical_z,
-            -this.vertical_x,-this.vertical_y,this.vertical_z,
-
-            -this.vertical_x,-this.vertical_y,-this.vertical_z,
-            -this.vertical_x,this.vertical_y,-this.vertical_z,
-            -this.vertical_x,this.vertical_y,this.vertical_z,
-            -this.vertical_x,-this.vertical_y,this.vertical_z,
-
-            this.vertical_x,-this.vertical_y,-this.vertical_z,
-            this.vertical_x,this.vertical_y,-this.vertical_z,
-            this.vertical_x,this.vertical_y,this.vertical_z,
-            this.vertical_x,-this.vertical_y,this.vertical_z,
-        ];
-
-        var x_offset = -0.1;
-        var y_offset = 0.3;
+        var x_offset = 0;
+        var y_offset = 0;
 
         positions.push(-this.horizontal_x+x_offset,-this.horizontal_y-y_offset,this.horizontal_z);
         positions.push(this.horizontal_x+x_offset,-this.horizontal_y-y_offset,this.horizontal_z);
@@ -182,6 +154,32 @@ let shoes = class {
         positions.push(this.horizontal_x+x_offset,this.horizontal_y-y_offset,-this.horizontal_z);
         positions.push(this.horizontal_x+x_offset,this.horizontal_y-y_offset,this.horizontal_z);
         positions.push(this.horizontal_x+x_offset,-this.horizontal_y-y_offset,this.horizontal_z);
+
+        var radius = 0.05;
+
+        for(var i=0;i<this.n;i++)
+        {   
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i+1)),0,radius*Math.cos(2*Math.PI/this.n*(i+1)));
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),0,radius*Math.cos(2*Math.PI/this.n*(i)));
+            // positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),radius*Math.cos(2*Math.PI/this.n*(i)),z);
+            positions.push(0,0.2,0);            
+        }
+
+        for(var i=0;i<this.n;i++)
+        {   
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i+1))+0.3,0,radius*Math.cos(2*Math.PI/this.n*(i+1)));
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i))+0.3,0,radius*Math.cos(2*Math.PI/this.n*(i)));
+            // positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),radius*Math.cos(2*Math.PI/this.n*(i)),z);
+            positions.push(0+0.3,0.2,0);            
+        }
+
+        for(var i=0;i<this.n;i++)
+        {   
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i+1))-0.3,0,radius*Math.cos(2*Math.PI/this.n*(i+1)));
+            positions.push(radius*Math.sin(2*Math.PI/this.n*(i))-0.3,0,radius*Math.cos(2*Math.PI/this.n*(i)));
+            // positions.push(radius*Math.sin(2*Math.PI/this.n*(i)),radius*Math.cos(2*Math.PI/this.n*(i)),z);
+            positions.push(-0.3,0.2,0);            
+        }
 
         return positions;
     }
@@ -197,7 +195,7 @@ let shoes = class {
         {
             if(pos[1] < -0.6)
             {
-                if(this.pos[2]-pos[2] <= 0.125+length)
+                if(this.pos[2]-pos[2] <= 0.125+length && this.pos[2]-pos[2]>0)
                 {
                     to_be_removed = true;   
                 }
@@ -212,17 +210,22 @@ let shoes = class {
         {
             colors = colors.concat(brown,brown,brown,brown);
         }
-        for(var i=0;i<6;i++)
+        for(var i = 0;i<this.n*3;i++)
         {
-            colors = colors.concat(gold,gold,gold,gold);
+            colors = colors.concat(gold,white,gold,gold);
+            
         }
+        // for(var i=0;i<6;i++)
+        // {
+        //     colors = colors.concat(gold,gold,gold,gold);
+        // }
         return colors;
     }
     generate_indices()
     {
         var indices = [];
 
-        for(var i=0;i<6*2;i++)
+        for(var i=0;i<6;i++)
         {
             indices.push(4*i);
             indices.push(4*i+1);
@@ -231,6 +234,13 @@ let shoes = class {
             indices.push(4*i+2);
             indices.push(4*i+3);
         }
+        for(var i = 0;i<this.n*3;i++)
+        {
+            indices.push(3*i);
+            indices.push(3*i+1);
+            indices.push(3*i+2);
+
+        }
         return indices;
     }
-};
+}

@@ -781,8 +781,16 @@ let player = class {
 
     move_up()
     {
-        if(this.pos[1]<-0.2)
-        this.pos[1] = 0;
+        if(boot_powerup === false)
+        {
+            if(this.pos[1]<-0.2)
+                this.pos[1] = 0;
+        }
+        else
+        {
+            if(this.pos[1]<-0.2)
+                this.pos[1] = 1;
+        }
     }
 
     generate_coordinates4()

@@ -16,7 +16,17 @@ let scene = class {
         this.pos = pos;
 
         gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(this.positions),gl.STATIC_DRAW);
+        const normalBuffer = gl.createBuffer();
+        
+        if(lightning === 0)
+        {
+            gl.bindBuffer(gl.ARRAY_BUFFER,normalBuffer);
 
+            this.vertexNormals = this.generate_normals();
+
+            gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(this.vertexNormals),gl.STATIC_DRAW);
+        }
+        
         const textureCoordBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
         this.textureCoordBuffer = this.get_texture();
@@ -29,11 +39,46 @@ let scene = class {
 
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(this.indices),gl.STATIC_DRAW);
 
-        this.buffer = {
-            position: this.positionBuffer,
-            textureCoord: textureCoordBuffer,
-            indices: indexBuffer,
-        };
+
+        
+
+        if(lightning === 0)
+        {
+            this.buffer = {
+                position: this.positionBuffer,
+                textureCoord: textureCoordBuffer,
+                indices: indexBuffer,
+                normal: normalBuffer,
+            };
+        }
+        else
+        {
+            this.buffer = {
+                position: this.positionBuffer,
+                textureCoord: textureCoordBuffer,
+                indices: indexBuffer,
+                // normal: normalBuffer,
+            };
+        }
+    }
+
+    generate_normals()
+    {
+        var normals = [
+            // Right
+            1.0,  0.0,  0.0,
+            1.0,  0.0,  0.0,
+            1.0,  0.0,  0.0,
+            1.0,  0.0,  0.0,
+
+            // Left
+            -1.0,  0.0,  0.0,
+            -1.0,  0.0,  0.0,
+            -1.0,  0.0,  0.0,
+            -1.0,  0.0,  0.0
+        ];
+
+        return normals;
     }
 
     get_coordinates()
@@ -108,6 +153,13 @@ let scene = class {
             this.rotation,
             [1, 1, 1]);
 
+        const normalMatrix = mat4.create();
+        if(lightning === 0)
+        {
+            mat4.invert(normalMatrix, modelViewMatrix);
+            mat4.transpose(normalMatrix, normalMatrix);
+        }
+
         {
             const numComponents = 3;
             const type = gl.FLOAT;
@@ -145,6 +197,29 @@ let scene = class {
             gl.enableVertexAttribArray(
                 programInfo.attribLocations.textureCoord);
         }
+        
+        if(lightning === 0)
+        {
+            // Tell WebGL how to pull out the normals from
+            // the normal buffer into the vertexNormal attribute.
+            {
+                const numComponents = 3;
+                const type = gl.FLOAT;
+                const normalize = false;
+                const stride = 0;
+                const offset = 0;
+                gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer.normal);
+                gl.vertexAttribPointer(
+                    programInfo.attribLocations.vertexNormal,
+                    numComponents,
+                    type,
+                    normalize,
+                    stride,
+                    offset);
+                gl.enableVertexAttribArray(
+                    programInfo.attribLocations.vertexNormal);
+            }
+        }
 
         // Tell WebGL which indices to use to index the vertices
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.buffer.indices);
@@ -163,6 +238,15 @@ let scene = class {
             programInfo.uniformLocations.modelViewMatrix,
             false,
             modelViewMatrix);
+
+        if(lightning === 0)
+        {        
+            gl.uniformMatrix4fv(
+                programInfo.uniformLocations.normalMatrix,
+                false,
+                normalMatrix);
+        }
+          
 
         gl.activeTexture(gl.TEXTURE1);
         // console.log(texture);

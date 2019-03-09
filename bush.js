@@ -1,6 +1,8 @@
 /// <reference path="webgl.d.ts" />
 
-let shoes = class {
+
+let bush = class 
+{
     constructor(gl,pos)
     {
         this.positionBuffer = gl.createBuffer();
@@ -36,6 +38,8 @@ let shoes = class {
             color: colorBuffer,
             indices: indexBuffer,
         };
+
+
     }
 
     drawCube(gl,projectionMatrix,programInfo,programInfo2,texture,deltaTime)
@@ -46,7 +50,7 @@ let shoes = class {
             modelViewMatrix,
             this.pos
         );
-        this.rotation += Math.PI/(Math.random()%100+50)
+        // this.rotation += Math.PI/(Math.random()%100+50)
 
         mat4.rotate(modelViewMatrix,modelViewMatrix,this.rotation,[0,1,0]);
 
@@ -150,8 +154,8 @@ let shoes = class {
             this.vertical_x,-this.vertical_y,this.vertical_z,
         ];
 
-        var x_offset = -0.1;
-        var y_offset = 0.3;
+        var x_offset = 0.0;
+        var y_offset = +0.2;
 
         positions.push(-this.horizontal_x+x_offset,-this.horizontal_y-y_offset,this.horizontal_z);
         positions.push(this.horizontal_x+x_offset,-this.horizontal_y-y_offset,this.horizontal_z);
@@ -197,7 +201,7 @@ let shoes = class {
         {
             if(pos[1] < -0.6)
             {
-                if(this.pos[2]-pos[2] <= 0.125+length)
+                if(this.pos[2]-pos[2] <= 0.025+length && this.pos[2]-pos[2] > 0)
                 {
                     to_be_removed = true;   
                 }
@@ -210,11 +214,11 @@ let shoes = class {
         var colors = [];
         for(var i=0;i<6;i++)
         {
-            colors = colors.concat(brown,brown,brown,brown);
+            colors = colors.concat(green,yellow,green,green);
         }
         for(var i=0;i<6;i++)
         {
-            colors = colors.concat(gold,gold,gold,gold);
+            colors = colors.concat(green,green,yellow,green);
         }
         return colors;
     }
