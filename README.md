@@ -5,4 +5,4 @@
  - Variant Colours for Objects 
  - Use of Textures and Shaders
  - Ambient Lighting and Flashing Effects
- - Police Officer and Dog created for the feel of chase
+ - Police Officer and Dog created for the feel of chasing
