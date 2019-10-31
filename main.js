@@ -44,7 +44,7 @@ function init_objects(gl)
   coin_number = [];
 
   NUMBER_OF_SCENES = 5;
-  NUMBER_OF_JETS = 6;
+  NUMBER_OF_JETS = 7;
   jets = [];
   scene_num = [];
   scene_right = [];
