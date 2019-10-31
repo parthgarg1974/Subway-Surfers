@@ -1,6 +1,6 @@
 # Subway Surfer in WebGL
 
-- Features
+- Feature
  - A Variant of Subway Surfer Game in WebGL 
  - Variant Colours for Objects 
  - Use of Textures and Shaders
